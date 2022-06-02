@@ -8,66 +8,26 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <application
         android:name=".XClipperApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.Dark">
-        <activity android:name=".ui.activities.Crash"/>
-        <activity android:name=".ui.activities.Start" android:launchMode="singleTop" android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme.Dark"
+        tools:replace="android:allowBackup">
+
+        <activity
+            android:name=".ui.activities.Start"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.dialogs.TagDialog"
-            android:excludeFromRecents="true"
-            android:theme="@style/CustomDialogStyle.Dark" />
-        <activity
-            android:name=".ui.activities.SpecialActions"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:theme="@style/CustomDialogStyle.Dark" />
-        <activity
-            android:name=".ui.dialogs.EditDialog"
-            android:excludeFromRecents="true"
-            android:theme="@style/CustomDialogStyle.Dark" />
-        <activity
-            android:name=".service.ChangeClipboardActivity"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:theme="@style/Theme.AppCompat.Translucent" />
-        <activity
-            android:name=".ui.dialogs.FeatureDialog$DialogActivity"
-            android:launchMode="singleInstance"
-            android:theme="@style/Theme.AppCompat.Translucent"/>
-        <activity
-            android:name="com.journeyapps.barcodescanner.CaptureActivity"
-            android:screenOrientation="portrait"
-            tools:replace="screenOrientation" />
-        <activity
-            android:name=".service.TextSelectionActivity"
-            android:excludeFromRecents="true"
-            android:exported="true"
-            android:label="@string/xcopy"
-            android:noHistory="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PROCESS_TEXT" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
@@ -76,31 +36,6 @@
             android:authorities="com.kpstv.xclipper.workmanager-init"
             tools:node="remove" />
 
-        <service
-            android:name=".service.ClipboardAccessibilityService"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/clip_service" />
-        </service>
-        <service
-            android:name=".service.TileService"
-            android:icon="@drawable/ic_clip"
-            android:label="Save Clip"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-        <service android:name=".service.BubbleService" />
-
-        <receiver android:name=".service.AppBroadcastReceiver" />
     </application>
 
 </manifest>

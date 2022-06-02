@@ -2,11 +2,34 @@
 <html lang="en">
 
 <head>
-    <title>XClipper - A clipboard manager</title>
     <link rel="shortcut icon" href="https://github.com/KaustubhPatange/XClipper/raw/master/XClipper.Web/images/icon.png"
         type="image/png" />
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>XClipper - Smart clipboard manager</title>
+    <meta name="title" content="XClipper - Smart clipboard manager for Windows & Android">
+    <meta name="description" content="XClipper is a smart clipboard manager for Windows & Android which helps to track clipboard activities and makes it easier to interact with them with lots of features.
+
+It also helps to synchronize your clipboard between these two platforms.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kaustubhpatange.github.io/XClipper">
+    <meta property="og:title" content="XClipper - Smart clipboard manager for Windows & Android">
+    <meta property="og:description" content="XClipper is a smart clipboard manager for Windows & Android which helps to track clipboard activities and makes it easier to interact with them with lots of features.
+
+It also helps to synchronize your clipboard between these two platforms.">
+
+    <meta property="og:image" content="https://github.com/KaustubhPatange/XClipper/raw/master/art/banner.png">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://kaustubhpatange.github.io/XClipper">
+    <meta property="twitter:title" content="XClipper - Smart clipboard manager for Windows & Android">
+    <meta property="twitter:description" content="XClipper is a smart clipboard manager for Windows & Android which helps to track clipboard activities and makes it easier to interact with them with lots of features.
+
+It also helps to synchronize your clipboard between these two platforms.">
+    <meta property="twitter:image" content="https://github.com/KaustubhPatange/XClipper/raw/master/art/banner.png">
+
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
     <link rel="stylesheet" href="XClipper.Web/css/bootstrap.min.css">
     <link rel="stylesheet" href="XClipper.Web/css/jquery-ui.css">
@@ -37,6 +60,9 @@
                     <button onclick="showContactForm()" type="button" class="btn github-btn">
                         <i style="margin-right: 3px;" class="fa fa-info-circle"></i>
                         Contact</button>
+                    <button type="button" onclick="openPrivacyPolicy()" class="btn github-btn">
+                        <i style="margin-right: 3px;" class="fa fa-file-text"></i>
+                        Privacy Policy</button>
                     <button onclick="openScreenShots()" data-toggle="tooltip"
                         title="Android app screenshots can be found in Google Play store." type="button"
                         class="btn github-btn">
@@ -209,9 +235,14 @@
                         <div style="margin-top: 10px;" class="container text-center">
                             <div id="modal-payment" style="display: none;">
                                 <div id="render-payment-button"></div>
+
+                                <div style="margin-bottom: 10px;" id="google-pay-button"> <a target="_blank" href="https://kaustubhpatange.github.io/XClipper/docs/#/gpay"><img height="54px"
+                                            src="https://lh3.googleusercontent.com/td1X5XgirXAyqYV880IMhf8l5MYWkp_qXSdopcM-JC8JD0Ox-XPaLchNg0uyNVOq6UKE3rLdDko9Xvcr7jltPjvvXaoqsTR8R6Wv=s0" /></a>
+                                </div>
+                                
                                 <span style="font-size: 13px; color: #fefefe;">Problems with purchase, <a
                                         target="_blank"
-                                        href="https://kaustubhpatange.github.io/XClipper/docs/#/faqs#purchase-faqs"><span
+                                        href="https://kaustubhpatange.github.io/XClipper/docs/#/faq?id=purchase-faqs"><span
                                             style="color: #fa8050;">read
                                             FAQs</span></a></span>
                             </div>

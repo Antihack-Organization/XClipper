@@ -5,9 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
 import androidx.paging.toLiveData
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.kpstv.xclipper.App.LOCAL_MAX_ITEM_STORAGE
-import com.kpstv.xclipper.App.MAX_CHARACTER_TO_STORE
-import com.kpstv.xclipper.data.localized.dao.ClipDataDao
+import com.kpstv.xclipper.data.localized.ClipDataDao
 import com.kpstv.xclipper.data.model.Clip
 import com.kpstv.xclipper.data.model.PartialClipTagMap
 import com.kpstv.xclipper.data.model.TagMap
@@ -22,6 +20,11 @@ class MainRepositoryImpl @Inject constructor(
     private val clipDao: ClipDataDao,
     private val firebaseProvider: FirebaseProvider
 ) : MainRepository {
+
+    private companion object {
+        private const val LOCAL_MAX_ITEM_STORAGE = 200
+        private const val MAX_CHARACTER_TO_STORE = 10_000
+    }
 
     private val TAG = javaClass.simpleName
 
@@ -82,10 +85,12 @@ class MainRepositoryImpl @Inject constructor(
             val finalClip = Clip.from(clip.clone(innerClip.id))
 
             /** Merge the existing tags into the clip tags */
-            if (finalClip.tags != null && clip.tags != null)
-                finalClip.tags = (finalClip.tags!! + clip.tags!!)
+            val newClip = if (finalClip.tags != null && clip.tags != null)
+                finalClip.copyWithFields(tags = (finalClip.tags!! + clip.tags!!))
+            else
+                finalClip
 
-            clipDao.update(finalClip)
+            clipDao.update(newClip)
             true
         } else {
             processClipAndSave(clip)
@@ -97,6 +102,11 @@ class MainRepositoryImpl @Inject constructor(
         clipDao.updatePin(clip.id, isPinned)
     }
 
+    override suspend fun updateTime(clip: Clip?) {
+        if (clip == null) return
+        clipDao.update(clip.updateTime())
+    }
+
     override suspend fun deleteClip(clip: Clip) {
         clipDao.delete(clip.id)
         firebaseProvider.deleteData(clip)
@@ -105,11 +115,11 @@ class MainRepositoryImpl @Inject constructor(
     override suspend fun deleteClip(data: String?) {
         if (data == null) return
         clipDao.delete(data)
+        firebaseProvider.deleteData(Clip.from(data))
     }
 
     override suspend fun deleteMultiple(clips: List<Clip>) {
-        for (clip in clips)
-            clipDao.delete(clip)
+        clipDao.delete(clips)
         firebaseProvider.deleteMultipleData(clips)
     }
 
@@ -128,7 +138,7 @@ class MainRepositoryImpl @Inject constructor(
         return clipDao.getAllLiveData()
     }
 
-    override suspend fun getData(data: String): Clip? = clipDao.getData(data)
+    override suspend fun getClipByData(data: String): Clip? = clipDao.getData(data)
 
     override suspend fun processClipAndSave(clip: Clip?): Boolean {
         if (clip == null) return false
@@ -158,6 +168,13 @@ class MainRepositoryImpl @Inject constructor(
         return result
     }
 
+    override suspend fun removeTag(tagName: String): Boolean {
+        val clips = clipDao.getDataByTag(tagName).filter { it.tags != null }
+        val modified = clips.map { clip -> clip.copyWithFields(tags = clip.tags!!.filterNot { it.key == tagName }) }
+        clipDao.update(modified)
+        return clips.isNotEmpty()
+    }
+
     override fun getAllTags(): Flow<List<TagMap>> {
         return clipDao.getAllTags().transform { value ->
             val tags = value.flatMap { partialTagMap: PartialClipTagMap -> partialTagMap.items.distinctBy { it.key } }
@@ -165,5 +182,10 @@ class MainRepositoryImpl @Inject constructor(
                 .map { TagMap(it.key, it.value.size) }
             emit(tags)
         }
+    }
+
+    override suspend fun isTopData(data: String): Boolean {
+        val topData = clipDao.getTopData()
+        return topData != null && topData == data
     }
 }

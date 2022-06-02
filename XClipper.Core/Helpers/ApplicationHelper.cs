@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -36,7 +37,9 @@ namespace Components
         }
 
         private static DispatcherTimer dtimer;
-        private static bool isExecuted;
+
+        private static volatile bool applicationActive = false;
+
         /// <summary>
         /// This will provide a callback whenever the application process is not foreground.
         /// </summary>
@@ -44,19 +47,23 @@ namespace Components
         public static void AttachForegroundProcess(Action block)
         {
             /** I do not support this logic, maybe in future I'll find a better solution. */
-            dtimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+
+            Application.Current.Activated += (o, e) => { applicationActive = true; };
+            Application.Current.Deactivated += (o, e) => {
+                block.Invoke();
+                applicationActive = false;
+            };
+
+            dtimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             dtimer.Tick += delegate
             {
                 IntPtr handle = GetForegroundWindow();
                 bool isActive = IsActivated(handle);
-                if (!isActive)
+                if (!isActive && applicationActive) 
                 {
-                    //  if (isExecuted) return;
-                    // Debug.WriteLine("Deactivated()");
                     block.Invoke();
-                    // isExecuted = true;
+                    applicationActive = false;
                 }
-                else isExecuted = false;
             };
             dtimer.Start();
         }
@@ -76,44 +83,50 @@ namespace Components
             return activeProcId == procId;
         }
 
+        private static readonly object activateLock = new object();
+        
         /// <summary>
         /// Activate a window from anywhere by attaching to the foreground window
         /// </summary>
-        public static void GlobalActivate(this Window w)
-        {
-            if (dtimer != null) dtimer.Stop();
-
-            var hWnd = new WindowInteropHelper(w).EnsureHandle();
-
-            var currentForegroundWindow = GetForegroundWindow();
-            var currentForegroundWindowThreadId = GetWindowThreadProcessId(currentForegroundWindow, IntPtr.Zero);
-            var thisWindowThreadId = GetWindowThreadProcessId(hWnd, IntPtr.Zero);
-
-            Thread.Sleep(70);
-
-            w.Show();
-            w.Activate();
-
-            if (currentForegroundWindowThreadId != thisWindowThreadId)
+        public static void GlobalActivate(this Window w) {
+            lock (activateLock)
             {
-                AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, true);
-                SetForegroundWindow(hWnd);
-                AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, false);
-            }
-            else
-            {
-                SetForegroundWindow(hWnd);
-            }
+                if (dtimer != null) dtimer.Stop();
 
-            Task.Run(async () =>
-            {
-                if (dtimer != null)
+                var hWnd = new WindowInteropHelper(w).EnsureHandle();
+
+                var currentForegroundWindow = GetForegroundWindow();
+                var currentForegroundWindowThreadId = GetWindowThreadProcessId(currentForegroundWindow, IntPtr.Zero);
+                var thisWindowThreadId = GetWindowThreadProcessId(hWnd, IntPtr.Zero);
+
+                //Thread.Sleep(70);
+
+                w.Show();
+                w.Activate();
+
+                if (currentForegroundWindowThreadId != thisWindowThreadId)
                 {
-                    await Task.Delay(300);
-                    Application.Current.Dispatcher.Invoke(() => SetFocus(hWnd));
-                    dtimer.Start();
+                    AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, true);
+                    SetForegroundWindow(hWnd);
+                    AttachThreadInput(currentForegroundWindowThreadId, thisWindowThreadId, false);
                 }
-            });
+                else
+                {
+                    SetForegroundWindow(hWnd);
+                }
+
+                if (dtimer != null) dtimer.Start();
+                //Task.Run(async () =>
+                //{
+                //    if (dtimer != null)
+                //    {
+                //        await Task.Delay(100);
+                //        Application.Current.Dispatcher.Invoke(() => SetFocus(hWnd));
+                //        await Task.Delay(200);
+                //        dtimer.Start();
+                //    }
+                //});   
+            }
         }
 
         /// <summary>

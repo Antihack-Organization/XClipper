@@ -4,11 +4,11 @@ object AndroidConfig {
     const val TARGET_SDK_VERSION = 30
     const val BUILD_TOOLS_VERSION = "30.0.3"
 
-    const val VERSION_CODE = 17
-    const val VERSION_NAME = "1.1.4"
+    const val VERSION_CODE = 32
+    const val VERSION_NAME = "1.2.7"
 
     const val ID = "com.kpstv.xclipper"
-    const val TEST_INSTRUMENTATION_RUNNER = "android.support.test.runner.AndroidJUnitRunner"
+    const val TEST_INSTRUMENTATION_RUNNER = "androidx.test.runner.AndroidJUnitRunner"
 }
 
 interface BuildType {
@@ -16,6 +16,7 @@ interface BuildType {
     companion object {
         const val RELEASE = "release"
         const val DEBUG = "debug"
+        const val IAP = "iap"
     }
 
     val isMinifyEnabled: Boolean

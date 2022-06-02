@@ -5,16 +5,27 @@ plugins {
     id(GradlePluginId.ANDROID_APPLICATION)
     id(GradlePluginId.XCLIPPER_ANDROID)
     kotlin(GradlePluginId.ANDROID_KTX)
-    kotlin(GradlePluginId.ANDROID_EXTENSIONS_KTX)
     kotlin(GradlePluginId.KAPT)
+    id(GradlePluginId.KOTLIN_PARCELIZE)
     id(GradlePluginId.DAGGER_HILT)
+    id(GradlePluginId.GOOGLE_SERVICE)
+    id(GradlePluginId.CRASHLYTICS)
 }
 
 android {
-   buildFeatures.viewBinding = true
+    buildFeatures.viewBinding = true
 
     sourceSets.getByName("main") {
         java.setSrcDirs(listOf("src/main/kotlin"))
+    }
+    sourceSets.getByName("debug").assets.srcDirs(files("$projectDir/schemas")) // Room
+
+    defaultConfig {
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+            }
+        }
     }
 
     signingConfigs {
@@ -26,20 +37,31 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
-
     buildTypes {
         defaultConfig {
             stringField("SERVER_URI", loadProperty("SERVER_URI", ""))
         }
         getByName(BuildType.RELEASE) {
+//            isMinifyEnabled = true // R8 Works but still needs more testing (PS: ClipboardAccessibilityService does not work)
+//            isShrinkResources = true
             signingConfig = signingConfigs.getByName(BuildType.RELEASE)
         }
         getByName(BuildType.DEBUG) {
+//            isMinifyEnabled = true // Test on debug mode to find any issues.
+//            isShrinkResources = true
             applicationIdSuffix = ".debug"
             isDebuggable = true
+        }
+        create(BuildType.IAP) {
+            initWith(getByName(BuildType.DEBUG))
+            matchingFallbacks.add(BuildType.DEBUG)
+            applicationIdSuffix = applicationIdSuffix?.removePrefix(".debug")
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }
@@ -47,7 +69,7 @@ android {
 tasks.register("checkForChangelog") {
     doFirst {
         val versionCode = project.android.defaultConfig.versionCode
-                val file = File("$rootDir\\fastlane\\metadata\\android\\en-US\\changelogs\\${versionCode}.txt")
+        val file = File("$rootDir\\fastlane\\metadata\\android\\en-US\\changelogs\\${versionCode}.txt")
         if (!file.exists()) {
             throw BuildCancelledException("Error: Please define a changelog for the versionCode $versionCode at \"fastlane\\metadata\\android\\en-US\\changelogs\"")
         }
@@ -55,11 +77,10 @@ tasks.register("checkForChangelog") {
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     for (moduleId in ModuleDependency.getAllModules().filterNot { it == ModuleDependency.APP })
-        implementation(project(moduleId))
-    implementation(LibraryDependency.KOTLIN_STDLIB)
+        api(project(moduleId))
     implementation(LibraryDependency.APP_COMPAT)
+    implementation(LibraryDependency.ACTIVITY_KTX)
     implementation(LibraryDependency.FRAGMENT_KTX)
     implementation(LibraryDependency.CORE_KTX)
     implementation(LibraryDependency.COLLECTIONS_KTX)
@@ -72,13 +93,16 @@ dependencies {
     implementation(LibraryDependency.COROUTINES_ANDROID)
     implementation(LibraryDependency.WORK_MANAGER)
     implementation(LibraryDependency.GSON)
-    implementation(LibraryDependency.ROOM_KTX)
     implementation(LibraryDependency.ROOM_RUNTIME)
     implementation(LibraryDependency.OKHTTP)
 
+    implementation(LibraryDependency.BILLING)
     implementation(LibraryDependency.FIREBASE_REALTIME_DATABASE)
     implementation(LibraryDependency.FIREBASE_AUTH)
+    implementation(LibraryDependency.FIREBASE_CRASHLYTICS)
+    implementation(LibraryDependency.FIREBASE_ANALYTICS)
     implementation(LibraryDependency.PLAY_SERVICE_AUTH)
+//
     implementation(LibraryDependency.PAGING)
     implementation(LibraryDependency.LIFECYCLE_EXTENSIONS)
     implementation(LibraryDependency.LIFECYCLE_VIEWMODEL)
@@ -89,7 +113,7 @@ dependencies {
     implementation(LibraryDependency.RETROFIT) {
         exclude("okhttp")
     }
-    implementation(LibraryDependency.OKHTTP)
+//    implementation(LibraryDependency.OKHTTP)
     implementation(LibraryDependency.OKHTTP_LOGGING_INTERCEPTOR)
     implementation(LibraryDependency.RETROFIT_GSON_CONVERTER)
     implementation(LibraryDependency.RETROFIT_COROUTINES_ADAPTER)
@@ -99,15 +123,16 @@ dependencies {
     implementation(LibraryDependency.LOTTIE)
     implementation(LibraryDependency.ZXING_ANDROID_QR)
     implementation(LibraryDependency.TOASTY)
-    implementation(LibraryDependency.ROUND_BOTTOM_SHEET)
     implementation(LibraryDependency.FLOATING_BUBBLE)
     implementation(LibraryDependency.GIF_DRAWABLE)
     implementation(LibraryDependency.HVLOG)
     implementation(LibraryDependency.GLIDE)
     implementation(LibraryDependency.CWT)
-    implementation(LibraryDependency.AUTO_BINDINGS)
     implementation(LibraryDependency.REALTIME_EXTENSIONS)
+    implementation(LibraryDependency.TIMBER)
+    implementation(LibraryDependency.MARKWON)
 
+    implementation(LibraryDependency.ROOM_KTX)
     implementation(LibraryDependency.NAVIGATOR)
     implementation(LibraryDependency.NAVIGATOR_EXTENSIONS)
 
@@ -116,14 +141,18 @@ dependencies {
 
     kapt(LibraryDependency.HILT_COMPILER)
     kapt(LibraryDependency.HILT_WORK_MANAGER_COMPILER)
-    kapt(LibraryDependency.AUTO_BINDINGS_COMPILER)
 
-    kapt(LibraryDependency.GLIDE_COMPILER)
     kapt(LibraryDependency.ROOM_COMPILER_KAPT)
 
-    debugImplementation(TestLibraryDependency.ANDROID_DEBUG_DB)
     testImplementation(TestLibraryDependency.JUNIT)
+    androidTestImplementation(LibraryDependency.ROOM_TESTING)
     androidTestImplementation(TestLibraryDependency.JUNIT_TEST_EXT)
+    androidTestImplementation("androidx.test:runner:1.4.0")
     androidTestImplementation(TestLibraryDependency.ESPRESSO_CORE)
+
     implementation(kotlin("reflect"))
+}
+
+tasks.withType<Test>() {
+    useJUnitPlatform()
 }

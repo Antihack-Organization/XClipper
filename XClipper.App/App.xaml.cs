@@ -121,13 +121,9 @@ namespace Components
             {
                 if (clipWindow.IsVisible) clipWindow.CloseWindow();
             });
-            //ApplicationHelper.AttachAppWindowDeactivation(clipWindow, clipWindow.CloseWindow);
-
-            // clipWindow.Deactivated += OnDeactivated;
 
             licenseService.Initiate(err =>
             {
-                // if (err is InvalidLicenseException) return;
                 if (err != null && err is not InvalidLicenseException)
                 {
                     MsgBoxHelper.ShowError(err.Message);
@@ -143,23 +139,22 @@ namespace Components
             hookUtility.SubscribeHotKeyEvents(LaunchCodeUI);
             hookUtility.SubscribePasteEvent(PerformWindowPaste);
             hookUtility.SubscribeQuickPasteEvent(QuickPasteHook);
+
+            SystemEvents.PowerModeChanged += OnPowerChange;
         }
 
-        /*protected override void OnDeactivated(EventArgs e)
+        private void OnPowerChange(object sender, PowerModeChangedEventArgs args)
         {
-            OnDeactivated(null, e);
-            base.OnDeactivated(e);
-        }*/
-
-        /*private void OnDeactivated(object sender, EventArgs e)
-        {
-            int visibleWindows = 0;
-            foreach (Window window in Current.Windows)
+            switch (args.Mode)
             {
-                if (window.IsVisible) visibleWindows++;
+                case PowerModes.Resume:
+                    FirebaseHelper.InitializeService(this);
+                    break;
+                case PowerModes.Suspend:
+                    FirebaseHelper.DeInitializeService();
+                    break;
             }
-            if (visibleWindows <= 1) clipWindow.CloseWindow();
-        }*/
+        }
 
         protected override void OnExit(ExitEventArgs e)
         {
@@ -167,6 +162,8 @@ namespace Components
             FirebaseSingletonV2.GetInstance.SaveUserState();
             ExplorerHelper.Unregister();
             WriteBufferSetting();
+            
+            SystemEvents.PowerModeChanged -= OnPowerChange;
             base.OnExit(e);
         }
 
@@ -780,7 +777,15 @@ namespace Components
             authWindow = new OAuthWindow(Id, secret);
             if (authWindow.ShowDialog() == true)
             {
-                FirebaseSingletonV2.GetInstance.Initialize();
+                FirebaseSingletonV2.GetInstance.Initialize().RunAsync();
+            }
+            else
+            {
+                // disable bind database
+                BindDatabase = false;
+                WriteSettings();
+                FirebaseHelper.DeInitializeService();
+                MsgBoxHelper.ShowError(Translation.MSG_AUTH_SIGNIN_FAILED);
             }
         }
 

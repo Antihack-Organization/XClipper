@@ -7,64 +7,62 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kpstv.navigation.*
-import com.kpstv.xclipper.App
-import com.kpstv.xclipper.data.provider.DBConnectionProvider
-import com.kpstv.xclipper.data.provider.PreferenceProvider
-import com.kpstv.xclipper.databinding.ActivityStartBinding
+import com.kpstv.onboarding.OnBoardingFragment
+import com.kpstv.xclipper.PinLockHelper
 import com.kpstv.xclipper.extensions.FragClazz
 import com.kpstv.xclipper.extensions.applyEdgeToEdgeMode
-import com.kpstv.xclipper.extensions.utils.RetrofitUtils
-import com.kpstv.xclipper.extensions.viewBinding
 import com.kpstv.xclipper.ui.fragments.Home
 import com.kpstv.xclipper.ui.fragments.Settings
-import com.kpstv.xclipper.ui.fragments.welcome.*
-import com.kpstv.xclipper.ui.helpers.*
-import com.kpstv.xclipper.ui.viewmodels.MainViewModel
+import com.kpstv.xclipper.ui.fragments.sheets.DisclosureSheet
+import com.kpstv.xclipper.ui.helpers.ActivityIntentHelper
+import com.kpstv.xclipper.ui.helpers.AppSettings
+import com.kpstv.xclipper.ui.helpers.FirebaseSyncHelper
+import com.kpstv.xclipper.ui.helpers.fragments.*
+import com.kpstv.xclipper.ui.navigation.AbstractNavigationOptions
+import com.kpstv.xclipper.ui.navigation.AbstractNavigationOptionsExtensions.consume
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class Start : AppCompatActivity(), FragmentNavigator.Transmitter {
-    private val binding by viewBinding(ActivityStartBinding::inflate)
     private val navViewModel by viewModels<NavViewModel>()
-    private val mainViewModel by viewModels<MainViewModel>()
     private lateinit var navigator: FragmentNavigator
 
     @Inject
-    lateinit var dbConnectionProvider: DBConnectionProvider
-    @Inject
-    lateinit var preferenceProvider: PreferenceProvider
-    @Inject
-    lateinit var retrofitUtils: RetrofitUtils
+    lateinit var appSettings: AppSettings
 
-    val updateHelper by lazy { UpdateHelper(this, retrofitUtils) }
+    val updateHelper by lazy { UpdateHelper(this) }
     private val intentHelper by lazy { ActivityIntentHelper(this) }
 
     override fun getNavigator(): FragmentNavigator = navigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        PinLockHelper.checkPinLock(this)
         applyEdgeToEdgeMode()
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
 
-        val startScreen = if (preferenceProvider.getBooleanKey(App.TUTORIAL_PREF, false)) Screen.HOME.clazz else Screen.GREET.clazz
+        val startScreen = if (appSettings.isOnBoardingScreensShowed()) Screen.HOME.clazz else Screen.ONBOARDING.clazz
         navigator = FragmentNavigator.with(this, savedInstanceState)
-            .initialize(binding.root, Destination.of(startScreen))
+            .initialize(findViewById(android.R.id.content), Destination.of(startScreen))
         navigator.autoChildElevation()
 
         navViewModel.navigation.observe(this) { options ->
-            navigator.navigateTo(options.clazz, options.navOptions)
+            options?.consume { navigator.navigateTo(options.clazz, options.navOptions) }
         }
 
         registerHelpers()
 
         intentHelper.handle(intent)
+
+        FirebaseSyncHelper.migrate(this)
     }
 
     private fun registerHelpers() {
         updateHelper.register()
-        SyncDialogHelper(this, preferenceProvider, dbConnectionProvider).register()
-        ReviewHelper(this, preferenceProvider).register()
+        SyncDialogHelper(this).register()
+        ReviewHelper(this).register()
+        ImproveDetectionHelper(this).register()
+        DisclosureHelper(this, navViewModel).register()
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -77,26 +75,14 @@ class Start : AppCompatActivity(), FragmentNavigator.Transmitter {
             super.onBackPressed()
     }
 
-    // Needed for scanning QRs
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        ConnectionHelper(this, mainViewModel, dbConnectionProvider)
-            .parse(requestCode, resultCode, data)
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-
     enum class Screen(val clazz: FragClazz) {
-        /* Introduction screens */
-        GREET(Greeting::class),
-        ANDROID10(Android10::class),
-        TURN_ON_SERVICE(TurnOnService::class),
-        ENABLE_SUGGESTIONS(EnableSuggestion::class),
-        STANDARD_COPY(StandardCopy::class),
-        QUICK_SETTING_TITLE(QuickSettingTitle::class),
-        WINDOWS_APP(WindowApp::class),
-
         /* Main screens */
+        ONBOARDING(OnBoardingFragment::class),
         HOME(Home::class),
-        SETTING(Settings::class);
+        SETTING(Settings::class),
+
+        /* Sheets */
+        DISCLOSURE(DisclosureSheet::class);
     }
 }
 
@@ -125,5 +111,5 @@ class NavViewModel : ViewModel() {
     data class NavigationOptions(
         val clazz: FragClazz,
         val navOptions: FragmentNavigator.NavOptions
-    )
+    ) : AbstractNavigationOptions()
 }

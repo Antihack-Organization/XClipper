@@ -4,11 +4,14 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.kpstv.xclipper.data.converters.DateConverter
-import com.kpstv.xclipper.data.converters.TagConverter
+import com.kpstv.xclipper.data.converters.*
+import com.kpstv.xclipper.data.localized.ClipDataDao
+import com.kpstv.xclipper.data.localized.TagDao
 import com.kpstv.xclipper.data.localized.dao.*
+import com.kpstv.xclipper.data.model.Definition
+import com.kpstv.xclipper.data.model.Preview
 import com.kpstv.xclipper.data.model.*
-import com.kpstv.xclipper.extensions.Coroutines
+import com.kpstv.xclipper.extensions.launchInIO
 import com.kpstv.xclipper.extensions.small
 import javax.inject.Inject
 import javax.inject.Provider
@@ -23,16 +26,16 @@ import javax.inject.Singleton
         UserEntity::class,
         Preview::class
     ],
-    version = 4,
-    exportSchema = false
+    version = 5,
 )
 
 @TypeConverters(
-    com.kpstv.xclipper.data.model.ClipListConverter::class,
-    com.kpstv.xclipper.data.model.DeviceListConverter::class,
-    com.kpstv.xclipper.data.model.UserEntityConverter::class,
+    ClipListConverter::class,
+    DeviceListConverter::class,
+    UserEntityConverter::class,
+    TagConverter::class,
     DateConverter::class,
-    TagConverter::class
+    ClipTagConverter::class
 )
 
 abstract class MainDatabase : RoomDatabase() {
@@ -52,11 +55,12 @@ abstract class MainDatabase : RoomDatabase() {
 
             val clipTagDao = database.get().clipTagDao()
 
-            Coroutines.io {
-                ClipTag.values().forEach {
-                    clipTagDao.insert(Tag.from(it.small()))
+            launchInIO {
+                ClipTag.values().forEach { tag ->
+                    val type = if (tag.marker == 1) ClipTagType.SPECIAL_TAG else ClipTagType.SYSTEM_TAG
+                    clipTagDao.insert(Tag.from(tag.small(), type))
                 }
-                clipTagDao.insert(Tag.from("sample tag"))
+                clipTagDao.insert(Tag.from("sample tag", ClipTagType.USER_TAG))
             }
         }
     }

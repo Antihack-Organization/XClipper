@@ -1,14 +1,17 @@
 buildscript {
-    val kotlin_version by extra("1.5.20")
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
     dependencies {
-        classpath(GradleDependency.GRADLE_BUILD_TOOLS)
-        classpath(GradleDependency.KOTLIN_PLUGIN)
-        classpath(GradleDependency.DAGGER_HILT)
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+        classpath(libs.android.gradlePlugin)
+        classpath(libs.kotlin.gradlePlugin)
+        classpath(libs.kotlin.ksp.gradlePlugin)
+        classpath(libs.android.hilt.gradlePlugin)
+        classpath(libs.firebase.crashlytics.gradlePlugin)
+        classpath(libs.google.gms.gradlePlugin)
+        classpath(libs.spotify.ruler.gradlePlugin)
     }
 }
 
@@ -19,10 +22,8 @@ allprojects {
         mavenCentral()
         mavenLocal()
         maven { url = uri("https://jitpack.io")}
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-        }
-
+        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+        maven { url = uri("https://github.com/omadahealth/omada-nexus/raw/master/release") }
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).configureEach {
@@ -33,6 +34,11 @@ allprojects {
             )
         }
     }
+}
+
+extensions.findByName("buildScan")?.withGroovyBuilder {
+    setProperty("termsOfServiceUrl", "https://gradle.com/terms-of-service")
+    setProperty("termsOfServiceAgree", "yes")
 }
 
 tasks {

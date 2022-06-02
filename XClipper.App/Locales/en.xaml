@@ -32,6 +32,8 @@
     <system:String x:Key="settings_tab_scripting">Scripting</system:String>
     <system:String x:Key="settings_tab_buffer">Copy Buffers</system:String>
     <system:String x:Key="settings_auth">Authentication</system:String>
+    <system:String x:Key="settings_tools">Tools</system:String>
+    <system:String x:Key="settings_data">Data</system:String>
     <system:String x:Key="settings_notify">Notification</system:String>
     <system:String x:Key="settings_common">Common</system:String>
     <system:String x:Key="settings_relate">Relations</system:String>
@@ -77,12 +79,19 @@
     <system:String x:Key="settings_reset">Settings Reset complete! If it didn't try restarting the application</system:String>
     <system:String x:Key="settings_save">Settings applied! If it didn't try restarting the application</system:String>
     <system:String x:Key="settings_save_warning">Some settings didn't apply correctly! Try to enable them again.</system:String>
-    <system:String x:Key="settings_fb_password">This will delete all existing data on firebase (if exist) since migration operations are costly.</system:String>
+    <system:String x:Key="settings_fb_password">This will migrate all the existing encrypted data to the new one. During this process you will loose all of the connected devices.</system:String>
     <system:String x:Key="settings_copy_scripts">Copy scripts</system:String>
     <system:String x:Key="settings_paste_scripts">Paste scripts</system:String>
     <system:String x:Key="settings_ignore_tooltip">Ignore certain text pattern that should not be stored in the database.</system:String>
     <system:String x:Key="settings_cau_tooltip">Unlock premium to enable the ability of changing how application updates will show.</system:String>
     <system:String x:Key="settings_enable_feature">Enable this feature</system:String>
+    <system:String x:Key="settings_unsaved">Some settings are not saved. Do you want to save them?</system:String>
+    <system:String x:Key="settings_export_data">Export</system:String>
+    <system:String x:Key="settings_export_data_description">The database stores and updates the snapshot of the clipboard items that can be synchronized. This will export them.</system:String>
+    <system:String x:Key="settings_import_data">Import</system:String>
+    <system:String x:Key="settings_import_data_description">Import an existing snapshot of the clipboard items which was created through &quot;Export&quot;. This will be applied on top of the existing items.</system:String>
+    <system:String x:Key="settings_delete_data">Remove All</system:String>
+    <system:String x:Key="settings_delete_data_description">Remove all the clipboard data that is stored on the database.</system:String>
 
     <system:String x:Key="filter_header">Filter</system:String>
     <system:String x:Key="filter_title">Filter Items by:</system:String>
@@ -130,6 +139,7 @@
     <system:String x:Key="msg_firebase_unknown_err">Unknown error with the Firebase Client. Report me if you get this message.</system:String>
     <system:String x:Key="msg_need_auth">In order to connect with the database you first need to Sign-In.</system:String>
     <system:String x:Key="msg_wrong_signin">Account credentials are not valid for this account. You need to sign-In again</system:String>
+    <system:String x:Key="msg_auth_signin_failed">OAuth sign-in failed due to which &quot;Database Binding&quot; is disabled. Enable it from Settings &gt; Connect.</system:String>
     <system:String x:Key="msg_unknown_err">An unknown error occurred. Report me if you get this message.</system:String>
     <system:String x:Key="msg_license_check">License validation is completed.</system:String>
     <system:String x:Key="msg_license_check_err">No license is associated with this UID.</system:String>
@@ -150,7 +160,16 @@
     <system:String x:Key="msg_purchase_message">Purchase premium to unlock all features as well as support me to continue working on this project.</system:String>
     <system:String x:Key="msg_no_update_title">Update not available.</system:String>
     <system:String x:Key="msg_no_update_text">No new update is available which means you are using the latest version.</system:String>
-    
+    <system:String x:Key="msg_are_you_sure">Are you sure?</system:String>
+    <system:String x:Key="msg_delete_config_text">This will delete the current firebase configuration and will eventually turn off the synchronization.</system:String>
+    <system:String x:Key="msg_data_export_success">The data is exported successfully.</system:String>
+    <system:String x:Key="msg_data_import_success">The data is imported successfully.</system:String>
+    <system:String x:Key="msg_data_import_err">Could not parse data due to {0}.</system:String>
+    <system:String x:Key="msg_data_remove_text">This will delete all the clips from the remote database which cannot be undone.</system:String>
+    <system:String x:Key="msg_data_remove_success">All remote data is removed successfully.</system:String>
+    <system:String x:Key="msg_data_remove_update_storage_title">Update security rules</system:String>
+    <system:String x:Key="msg_data_remove_update_storage_text">In order to delete all images from Firebase's storage bucket you need to update the security rules to the latest as mentioned in the docs. Click &quot;Yes&quot; to know how?</system:String>
+
     <system:String x:Key="popup_added">Added:</system:String>
     <system:String x:Key="popup_space_focus">...Press (Space) to Focus...</system:String>
     <system:String x:Key="popup_edit_err">Editing is not supported for this format</system:String>
@@ -205,6 +224,7 @@
     <system:String x:Key="sync_import_msg">Enter your end-to-end encryption password.</system:String>
     <system:String x:Key="sync_export">Export configuration</system:String>
     <system:String x:Key="sync_export_success">Configurations are exported to the file.</system:String>
+    <system:String x:Key="sync_delete">Remove configuration</system:String>
     <system:String x:Key="sync_id_default">XClipper will use default App Id for storing data.</system:String>
     <system:String x:Key="sync_id_custom">XClipper will use custom App Id from configuration file.</system:String>
     <system:String x:Key="sync_config_err" xml:space="preserve">No Firebase configuration file found. Would you like to create it?&#10;&#10;You can always create it from System Tray &gt; XClipper &gt; FirebaseConfiguration.</system:String>
@@ -227,6 +247,7 @@
     <system:String x:Key="sync_timeout_action_text">Click here to take necessary measures.</system:String>
     <system:String x:Key="sync_timeout_error_title">Timed out error occurred</system:String>
     <system:String x:Key="sync_timeout_error_text" xml:space="preserve">Seems like the problem is likely with your Internet connection.&#10;&#10;Firebase client will now shutdown to enable it again restart the application!</system:String>
+    <system:String x:Key="sync_bind_enabled_err">The synchronization feature is not active, enable it in &quot;Settings&quot; &gt; &quot;Connect&quot;.</system:String>
 
     <system:String x:Key="update_title">New version of XClipper is available</system:String>
     <system:String x:Key="update_download_size_error">Oops, the file size did not matched with the one specified on the server! It looks like the update got corrupted, restart the update to see if it fixes automatically.</system:String>

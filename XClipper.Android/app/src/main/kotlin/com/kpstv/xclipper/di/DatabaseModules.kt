@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.kpstv.xclipper.data.db.MainDatabase
+import com.kpstv.xclipper.data.db.migrations.Migration
+import com.kpstv.xclipper.data.localized.ClipDataDao
+import com.kpstv.xclipper.data.localized.TagDao
 import com.kpstv.xclipper.data.localized.dao.*
 import com.kpstv.xclipper.data.provider.FirebaseProvider
 import com.kpstv.xclipper.data.repository.MainRepository
@@ -29,6 +32,7 @@ object DatabaseModules {
             MainDatabase.DATABASE_NAME
         )
             .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
+            .addMigrations(*Migration.getAll())
             .fallbackToDestructiveMigrationFrom(3) // provide db version to destruct it
             .addCallback(callback)
             .build()

@@ -12,6 +12,10 @@
 - [Copy Buffers](buffers)
 - [Hidden Settings](hidden)
 - [FAQs](faq)
+  **Android**
+- [Improve Clipboard Detection](android-detection)
+  **Premium 👑**
+- [Buy with Google Pay](gpay)
   **Developers**
 - [Compilation guide](compile)
 
@@ -30,5 +34,7 @@
 - [Copy Buffers](wiki/Copy-Buffers.md)
 - [Hidden Settings](wiki/Hidden-Settings.md)
 - [FAQs](wiki/FAQs.md)
+  **Android**
+- [Improve Clipboard Detection](wiki/Improve-Clipboard-Detection.md)
   **Developers**
 - [Compilation guide](wiki/Compilation-guide.md) -->
